@@ -2,14 +2,14 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>The Absolute Sorting Encyclopedia</title>
+    <title>The Absolute Sorting Encyclopedia - Controlled</title>
     <style>
         :root { --primary: #2563eb; --bg: #f1f5f9; --card: #ffffff; --text: #0f172a; --success: #2ecc71; }
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .container { width: 95vw; max-width: 1100px; }
         .controls { background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
         .graph-container { background: #1e293b; height: 300px; border-radius: 8px; display: flex; align-items: flex-end; padding: 10px; gap: 1px; margin-bottom: 20px; }
-        .bar { background: #38bdf8; flex: 1; }
+        .bar { background: #38bdf8; flex: 1; height: 0%; }
         .bar.comparing { background: #ef4444 !important; }
         .bar.writing { background: #fbbf24 !important; }
         .bar.finished { background: var(--success) !important; transition: background 0.05s; }
@@ -26,30 +26,28 @@
 <body>
 
 <div class="container">
-    <h2>ソートアルゴリズム究極図鑑 (直接書き換え版)</h2>
+    <h2>ソートアルゴリズム究極図鑑 (停止・固定粛清版)</h2>
 
     <div class="controls">
         <div>
             <div class="label">アルゴリズム</div>
             <select id="algoSelect" style="width: 100%;" onchange="updateInfo()">
-                <optgroup label="🚀 大規模向き (高速)">
+                <optgroup label="🚀 高速ソート">
                     <option value="quick">クイックソート</option>
                     <option value="heap">ヒープソート</option>
                     <option value="shell">シェルソート</option>
                 </optgroup>
-                <optgroup label="🔍 小・中規模向き">
+                <optgroup label="🔍 基本ソート">
                     <option value="insertion">挿入ソート</option>
                     <option value="selection">選択ソート</option>
                     <option value="bubble">バブルソート</option>
                     <option value="cocktail">カクテルソート</option>
-                    <option value="gnome">ノームソート</option>
                 </optgroup>
                 <optgroup label="🤡 ネタセクション">
                     <option value="abe">アベソート (上方修正)</option>
-                    <option value="stalin">スターリンソート (粛清)</option>
+                    <option value="stalin">スターリンソート (固定粛清)</option>
                     <option value="bogo">ボゴソート (神頼み)</option>
                     <option value="miracle">ミラクルソート (奇跡待ち)</option>
-                    <option value="id">インテリジェントデザイン</option>
                 </optgroup>
             </select>
         </div>
@@ -58,7 +56,7 @@
             <input type="number" id="dataCount" value="60" min="5" max="300" style="width: 80%;">
         </div>
         <div style="display: flex; align-items: flex-end; gap: 10px;">
-            <button onclick="initArray()" style="background: #64748b;">リセット</button>
+            <button onclick="resetAll()" style="background: #64748b;">リセット</button>
             <button onclick="startSort()" id="startBtn">ソート開始</button>
         </div>
     </div>
@@ -68,35 +66,28 @@
     <div class="stats-grid">
         <div class="stat-card"><div class="label">仕組み</div><div class="value" id="logicText">-</div></div>
         <div class="stat-card"><div class="label">計算時間 (最良 / 最悪)</div><div class="value" id="complexityText">-</div></div>
-        <div class="stat-card"><div class="label">実行計測時間</div><div class="value" id="timeValue">0.000 秒 (0.00 ms)</div></div>
+        <div class="stat-card"><div class="label">計測結果</div><div class="value" id="timeValue">0.000 秒 (0.00 ms)</div></div>
     </div>
 </div>
 
 <script>
     let array = [];
+    let isSorting = false; // ソート中フラグ
     const graph = document.getElementById('graph');
-    const info = {
-        quick: { logic: "配列内でピボットを基準に入れ替えを行い、範囲を分割して再帰します。", comp: "O(n log n) / O(n²)" },
-        heap: { logic: "配列をヒープ構造に見立てて、最大値と末尾を入れ替え続けます。", comp: "O(n log n) / O(n log n)" },
-        shell: { logic: "一定間隔ごとの要素を直接比較・交換し、徐々に間隔を詰め整列させます。", comp: "O(n log n) / O(n².²⁵〜)" },
-        insertion: { logic: "値を一つずつ取り出し、整列済みの範囲の適切な位置へ直接差し込みます。", comp: "O(n) / O(n²)" },
-        selection: { logic: "最小値を探し出し、未整列範囲の先頭と直接入れ替えます。", comp: "O(n²) / O(n²)" },
-        bubble: { logic: "隣り合う要素を比較し、逆順ならその場で入れ替えます。", comp: "O(n) / O(n²)" },
-        cocktail: { logic: "バブルソートを往復させます。直接入れ替えながら左右を詰めます。", comp: "O(n) / O(n²)" },
-        gnome: { logic: "大小が逆ならその場で交換し、一歩戻って再度チェックします。", comp: "O(n) / O(n²)" },
-        abe: { logic: "現在の最大値を下回る要素を、その場で最大値に書き換えます。", comp: "O(n) / O(n)" },
-        stalin: { logic: "順序を乱す要素をその場で0(削除扱い)に書き換えます。", comp: "O(n) / O(n)" },
-        bogo: { logic: "揃うまで配列全体をランダムに入れ替え続けます。", comp: "O(n) / ∞" },
-        miracle: { logic: "何もせず、物理現象によるメモリ書き換えのみを待ちます。", comp: "O(n) / ∞" },
-        id: { logic: "「今の並びが創造主の意図」として即座に終了します。", comp: "O(0) / O(0)" }
-    };
 
-    function initArray() {
-        const count = parseInt(document.getElementById('dataCount').value);
-        array = Array.from({length: count}, () => Math.floor(Math.random() * 90) + 10);
-        render();
-        document.getElementById('timeValue').innerText = "0.000 秒 (0.00 ms)";
-    }
+    const info = {
+        quick: { logic: "ピボットを基準に入れ替えを行い、範囲を分割して再帰します。", comp: "O(n log n) / O(n²)" },
+        heap: { logic: "配列をヒープ構造に見立てて、最大値と末尾を入れ替え続けます。", comp: "O(n log n) / O(n log n)" },
+        shell: { logic: "一定間隔ごとの要素を比較し、徐々に間隔を詰め整列させます。", comp: "O(n log n) / O(n².²⁵〜)" },
+        insertion: { logic: "値を一つずつ取り出し、整列済みの範囲へ直接差し込みます。", comp: "O(n) / O(n²)" },
+        selection: { logic: "最小値を探し出し、未整列範囲の先頭と入れ替えます。", comp: "O(n²) / O(n²)" },
+        bubble: { logic: "隣り合う要素を比較し、逆順なら入れ替えます。", comp: "O(n) / O(n²)" },
+        cocktail: { logic: "バブルソートを往復させ、左右を詰めながら整列します。", comp: "O(n) / O(n²)" },
+        abe: { logic: "現在の最大値を下回る要素を、その場で最大値に書き換えます。", comp: "O(n) / O(n)" },
+        stalin: { logic: "順序を乱す要素を、その場で0（消去）に書き換えます。位置は固定です。", comp: "O(n) / O(n)" },
+        bogo: { logic: "揃うまで配列全体をランダムに入れ替え続けます。", comp: "O(n) / ∞" },
+        miracle: { logic: "何もせず、物理現象によるメモリ書き換えを待ちます。", comp: "O(n) / ∞" }
+    };
 
     function render(hl = [], type = 'comparing') {
         graph.innerHTML = '';
@@ -109,50 +100,72 @@
         });
     }
 
+    function resetAll() {
+        isSorting = false; // ループ停止
+        const count = parseInt(document.getElementById('dataCount').value);
+        array = Array.from({length: count}, () => Math.floor(Math.random() * 90) + 10);
+        render();
+        document.getElementById('timeValue').innerText = "0.000 秒 (0.00 ms)";
+        document.getElementById('startBtn').disabled = false;
+    }
+
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+    async function checkStop() {
+        if (!isSorting) throw new Error("STOP");
+        await sleep(10); // 共通の待機時間
+    }
+
     async function finishEffect() {
         const bars = document.getElementsByClassName('bar');
         for (let i = 0; i < bars.length; i++) {
+            if (!isSorting) return;
             bars[i].classList.add('finished');
             await sleep(15);
         }
     }
 
-    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-
     async function startSort() {
         const btn = document.getElementById('startBtn');
         btn.disabled = true;
+        isSorting = true;
         const a = document.getElementById('algoSelect').value;
         const start = performance.now();
         
-        if (a === 'quick') await quickSort(0, array.length - 1);
-        else if (a === 'heap') await heapSort();
-        else if (a === 'shell') await shellSort();
-        else if (a === 'insertion') await insertionSort();
-        else if (a === 'selection') await selectionSort();
-        else if (a === 'bubble') await bubbleSort();
-        else if (a === 'cocktail') await cocktailSort();
-        else if (a === 'gnome') await gnomeSort();
-        else if (a === 'abe') await abeSort();
-        else if (a === 'stalin') await stalinSort();
-        else if (a === 'bogo') await bogoSort();
-        else if (a === 'miracle') await miracleSort();
+        try {
+            if (a === 'quick') await quickSort(0, array.length - 1);
+            else if (a === 'heap') await heapSort();
+            else if (a === 'shell') await shellSort();
+            else if (a === 'insertion') await insertionSort();
+            else if (a === 'selection') await selectionSort();
+            else if (a === 'bubble') await bubbleSort();
+            else if (a === 'cocktail') await cocktailSort();
+            else if (a === 'abe') await abeSort();
+            else if (a === 'stalin') await stalinSort();
+            else if (a === 'bogo') await bogoSort();
+            else if (a === 'miracle') await miracleSort();
 
-        const end = performance.now();
-        const diff = end - start;
-        document.getElementById('timeValue').innerText = `${(diff / 1000).toFixed(3)} 秒 (${diff.toFixed(2)} ms)`;
-        
-        render();
-        await finishEffect();
-        btn.disabled = false;
+            const end = performance.now();
+            const diff = end - start;
+            document.getElementById('timeValue').innerText = `${(diff / 1000).toFixed(3)} 秒 (${diff.toFixed(2)} ms)`;
+            
+            render();
+            await finishEffect();
+        } catch (e) {
+            if (e.message !== "STOP") console.error(e);
+        } finally {
+            btn.disabled = false;
+            isSorting = false;
+        }
     }
 
-    // --- インプレース(直接書き換え)実装 ---
+    // --- アルゴリズム実装（停止チェック入り） ---
     async function quickSort(s, e) {
         if (s >= e) return;
         let p = array[e], i = s;
         for (let j = s; j < e; j++) {
-            if (array[j] < p) { [array[i], array[j]] = [array[j], array[i]]; i++; render([i, j]); await sleep(15); }
+            await checkStop();
+            if (array[j] < p) { [array[i], array[j]] = [array[j], array[i]]; i++; render([i, j]); }
         }
         [array[i], array[e]] = [array[e], array[i]];
         await quickSort(s, i - 1); await quickSort(i + 1, e);
@@ -164,26 +177,61 @@
             let largest = idx, l = 2*idx+1, r = 2*idx+2;
             if (l < size && array[l] > array[largest]) largest = l;
             if (r < size && array[r] > array[largest]) largest = r;
-            if (largest !== idx) { [array[idx], array[largest]] = [array[largest], array[idx]]; render([idx, largest]); await sleep(15); await heapify(size, largest); }
+            if (largest !== idx) { 
+                await checkStop();
+                [array[idx], array[largest]] = [array[largest], array[idx]]; 
+                render([idx, largest]); await heapify(size, largest); 
+            }
         };
         for (let i = Math.floor(n/2)-1; i >= 0; i--) await heapify(n, i);
-        for (let i = n-1; i > 0; i--) { [array[0], array[i]] = [array[i], array[0]]; render([i]); await sleep(15); await heapify(i, 0); }
+        for (let i = n-1; i > 0; i--) { 
+            await checkStop();
+            [array[0], array[i]] = [array[i], array[0]]; render([i]); await heapify(i, 0); 
+        }
     }
 
     async function shellSort() {
         for (let gap = Math.floor(array.length/2); gap > 0; gap = Math.floor(gap/2)) {
             for (let i = gap; i < array.length; i++) {
                 let temp = array[i], j = i;
-                while (j >= gap && array[j-gap] > temp) { array[j] = array[j-gap]; j -= gap; render([j], 'writing'); await sleep(10); }
+                while (j >= gap && array[j-gap] > temp) { 
+                    await checkStop();
+                    array[j] = array[j-gap]; j -= gap; render([j], 'writing'); 
+                }
                 array[j] = temp;
             }
+        }
+    }
+
+    async function stalinSort() {
+        let max = array[0];
+        for (let i = 1; i < array.length; i++) {
+            await checkStop();
+            if (array[i] < max) {
+                array[i] = 0; // 粛清：その場を0にする（左詰めしない）
+            } else {
+                max = array[i];
+            }
+            render([i], 'comparing');
+        }
+    }
+
+    async function abeSort() {
+        let max = array[0];
+        for (let i = 1; i < array.length; i++) {
+            await checkStop();
+            if (array[i] < max) array[i] = max; else max = array[i];
+            render([i], 'writing');
         }
     }
 
     async function insertionSort() {
         for (let i = 1; i < array.length; i++) {
             let key = array[i], j = i - 1;
-            while (j >= 0 && array[j] > key) { array[j+1] = array[j]; j--; render([j, i], 'writing'); await sleep(10); }
+            while (j >= 0 && array[j] > key) { 
+                await checkStop();
+                array[j+1] = array[j]; j--; render([j, i], 'writing'); 
+            }
             array[j+1] = key;
         }
     }
@@ -191,7 +239,10 @@
     async function selectionSort() {
         for (let i = 0; i < array.length; i++) {
             let m = i;
-            for (let j = i + 1; j < array.length; j++) { if (array[j] < array[m]) m = j; render([i, j]); await sleep(5); }
+            for (let j = i + 1; j < array.length; j++) { 
+                await checkStop();
+                if (array[j] < array[m]) m = j; render([i, j]); 
+            }
             [array[i], array[m]] = [array[m], array[i]];
         }
     }
@@ -199,8 +250,9 @@
     async function bubbleSort() {
         for (let i = 0; i < array.length; i++) {
             for (let j = 0; j < array.length - i - 1; j++) {
+                await checkStop();
                 if (array[j] > array[j+1]) [array[j], array[j+1]] = [array[j+1], array[j]];
-                render([j, j+1]); await sleep(5);
+                render([j, j+1]);
             }
         }
     }
@@ -208,51 +260,29 @@
     async function cocktailSort() {
         let l = 0, r = array.length - 1;
         while (l < r) {
-            for (let i = l; i < r; i++) { if (array[i] > array[i+1]) [array[i], array[i+1]] = [array[i+1], array[i]]; render([i, i+1]); await sleep(5); }
+            for (let i = l; i < r; i++) { await checkStop(); if (array[i] > array[i+1]) [array[i], array[i+1]] = [array[i+1], array[i]]; render([i, i+1]); }
             r--;
-            for (let i = r; i > l; i--) { if (array[i] < array[i-1]) [array[i], array[i-1]] = [array[i-1], array[i]]; render([i, i-1]); await sleep(5); }
+            for (let i = r; i > l; i--) { await checkStop(); if (array[i] < array[i-1]) [array[i], array[i-1]] = [array[i-1], array[i]]; render([i, i-1]); }
             l++;
-        }
-    }
-
-    async function gnomeSort() {
-        let i = 0;
-        while (i < array.length) {
-            if (i === 0 || array[i] >= array[i-1]) i++;
-            else { [array[i], array[i-1]] = [array[i-1], array[i]]; i--; render([i, i+1]); await sleep(5); }
-        }
-    }
-
-    async function abeSort() {
-        let max = array[0];
-        for (let i = 1; i < array.length; i++) {
-            if (array[i] < max) array[i] = max; else max = array[i];
-            render([i], 'writing'); await sleep(20);
-        }
-    }
-
-    async function stalinSort() {
-        let max = array[0];
-        for (let i = 1; i < array.length; i++) {
-            if (array[i] < max) array[i] = 0; else max = array[i];
-            render([i], 'comparing'); await sleep(30);
         }
     }
 
     async function bogoSort() {
         const isS = () => array.every((v, i) => i === 0 || v >= array[i-1]);
         while (!isS()) {
+            await checkStop();
             for (let i = array.length-1; i > 0; i--) {
                 const j = Math.floor(Math.random()*(i+1));
                 [array[i], array[j]] = [array[j], array[i]];
             }
-            render(); await sleep(50);
+            render();
         }
     }
 
     async function miracleSort() {
         while (!array.every((v, i) => i === 0 || v >= array[i-1])) {
-            render(); await sleep(100);
+            await checkStop();
+            render();
         }
     }
 
@@ -263,7 +293,7 @@
     }
 
     updateInfo();
-    initArray();
+    resetAll();
 </script>
 </body>
 </html>
