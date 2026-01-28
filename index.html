@@ -2,191 +2,307 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>The Absolute Sorting Encyclopedia - Controlled</title>
+    <title>The Complete Sorting Encyclopedia - 5000 Units</title>
     <style>
-        :root { --primary: #2563eb; --bg: #f1f5f9; --card: #ffffff; --text: #0f172a; --success: #2ecc71; }
+        :root { --primary: #2563eb; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --success: #2ecc71; }
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .container { width: 95vw; max-width: 1100px; }
-        .controls { background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
-        .graph-container { background: #1e293b; height: 300px; border-radius: 8px; display: flex; align-items: flex-end; padding: 10px; gap: 1px; margin-bottom: 20px; }
-        .bar { background: #38bdf8; flex: 1; height: 0%; }
-        .bar.comparing { background: #ef4444 !important; }
-        .bar.writing { background: #fbbf24 !important; }
-        .bar.finished { background: var(--success) !important; transition: background 0.05s; }
+        .container { width: 95vw; max-width: 1200px; }
+        .controls { background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
+        .canvas-container { background: #000; border-radius: 8px; overflow: hidden; margin-bottom: 20px; border: 1px solid #334155; position: relative; }
+        canvas { width: 100%; height: 400px; display: block; }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; }
-        .stat-card { background: var(--card); padding: 15px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); border-top: 4px solid var(--primary); }
-        .label { font-size: 0.75rem; color: #64748b; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; }
-        .value { font-size: 0.9rem; line-height: 1.5; font-weight: 500; }
-        select, input, button { padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.9rem; }
+        .stat-card { background: var(--card); padding: 15px; border-radius: 10px; border-top: 4px solid var(--primary); }
+        .label { font-size: 0.75rem; color: #94a3b8; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; }
+        .value { font-size: 0.95rem; font-weight: 600; color: #fff; line-height: 1.4; }
+        .timer-display { font-family: 'Courier New', monospace; color: #fbbf24; font-size: 1.4rem; }
+        select, input, button { padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: #fff; font-size: 0.9rem; }
         button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
         button:hover { background: #1d4ed8; }
-        button:disabled { background: #cbd5e1; }
+        button:disabled { opacity: 0.3; cursor: not-allowed; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>ソートアルゴリズム究極図鑑 (停止・固定粛清版)</h2>
+    <h2>ソートアルゴリズム究極図鑑 (全種網羅・5,000件対応)</h2>
 
     <div class="controls">
         <div>
             <div class="label">アルゴリズム</div>
-            <select id="algoSelect" style="width: 100%;" onchange="updateInfo()">
-                <optgroup label="🚀 高速ソート">
+            <select id="algoSelect" onchange="updateInfo()" style="width: 100%;">
+                <optgroup label="🚀 大規模向き (高速)">
                     <option value="quick">クイックソート</option>
+                    <option value="merge">マージソート</option>
                     <option value="heap">ヒープソート</option>
+                    <option value="tim">ティムソート</option>
                     <option value="shell">シェルソート</option>
                 </optgroup>
-                <optgroup label="🔍 基本ソート">
+                <optgroup label="🔍 中・小規模向き">
                     <option value="insertion">挿入ソート</option>
                     <option value="selection">選択ソート</option>
                     <option value="bubble">バブルソート</option>
                     <option value="cocktail">カクテルソート</option>
+                    <option value="gnome">ノームソート</option>
                 </optgroup>
                 <optgroup label="🤡 ネタセクション">
                     <option value="abe">アベソート (上方修正)</option>
                     <option value="stalin">スターリンソート (固定粛清)</option>
+                    <option value="sleep">スリープソート (時間依存)</option>
                     <option value="bogo">ボゴソート (神頼み)</option>
-                    <option value="miracle">ミラクルソート (奇跡待ち)</option>
+                    <option value="miracle">ミラクルソート (奇跡)</option>
                 </optgroup>
             </select>
         </div>
         <div>
-            <div class="label">データ数 (5〜300)</div>
-            <input type="number" id="dataCount" value="60" min="5" max="300" style="width: 80%;">
+            <div class="label">データ数 (現在: <span id="countVal">1000</span>)</div>
+            <input type="range" id="dataCount" value="1000" min="10" max="5000" step="10" oninput="document.getElementById('countVal').innerText=this.value" style="width: 90%;">
         </div>
         <div style="display: flex; align-items: flex-end; gap: 10px;">
             <button onclick="resetAll()" style="background: #64748b;">リセット</button>
-            <button onclick="startSort()" id="startBtn">ソート開始</button>
+            <button onclick="startSort()" id="startBtn">計測開始</button>
         </div>
     </div>
 
-    <div class="graph-container" id="graph"></div>
+    <div class="canvas-container">
+        <canvas id="sortCanvas"></canvas>
+    </div>
 
     <div class="stats-grid">
         <div class="stat-card"><div class="label">仕組み</div><div class="value" id="logicText">-</div></div>
-        <div class="stat-card"><div class="label">計算時間 (最良 / 最悪)</div><div class="value" id="complexityText">-</div></div>
-        <div class="stat-card"><div class="label">計測結果</div><div class="value" id="timeValue">0.000 秒 (0.00 ms)</div></div>
+        <div class="stat-card"><div class="label">計算時間</div><div class="value" id="complexityText">-</div></div>
+        <div class="stat-card"><div class="label">実行計測時間</div><div class="value timer-display" id="timeValue">0.000 秒 (0.00 ms)</div></div>
     </div>
 </div>
 
 <script>
     let array = [];
-    let isSorting = false; // ソート中フラグ
-    const graph = document.getElementById('graph');
+    let isSorting = false;
+    let timerInterval = null;
+    let canvas, ctx;
+    let highlightIdx = [];
 
     const info = {
-        quick: { logic: "ピボットを基準に入れ替えを行い、範囲を分割して再帰します。", comp: "O(n log n) / O(n²)" },
-        heap: { logic: "配列をヒープ構造に見立てて、最大値と末尾を入れ替え続けます。", comp: "O(n log n) / O(n log n)" },
-        shell: { logic: "一定間隔ごとの要素を比較し、徐々に間隔を詰め整列させます。", comp: "O(n log n) / O(n².²⁵〜)" },
-        insertion: { logic: "値を一つずつ取り出し、整列済みの範囲へ直接差し込みます。", comp: "O(n) / O(n²)" },
-        selection: { logic: "最小値を探し出し、未整列範囲の先頭と入れ替えます。", comp: "O(n²) / O(n²)" },
-        bubble: { logic: "隣り合う要素を比較し、逆順なら入れ替えます。", comp: "O(n) / O(n²)" },
-        cocktail: { logic: "バブルソートを往復させ、左右を詰めながら整列します。", comp: "O(n) / O(n²)" },
-        abe: { logic: "現在の最大値を下回る要素を、その場で最大値に書き換えます。", comp: "O(n) / O(n)" },
-        stalin: { logic: "順序を乱す要素を、その場で0（消去）に書き換えます。位置は固定です。", comp: "O(n) / O(n)" },
-        bogo: { logic: "揃うまで配列全体をランダムに入れ替え続けます。", comp: "O(n) / ∞" },
-        miracle: { logic: "何もせず、物理現象によるメモリ書き換えを待ちます。", comp: "O(n) / ∞" }
+        quick: { logic: "ピボットを基準に再帰的に分割。平均最速クラス。", comp: "O(n log n) / O(n²)" },
+        merge: { logic: "分割してから整列しつつ合体。安定性が高い。", comp: "O(n log n) / O(n log n)" },
+        heap: { logic: "木構造を作り、最大値から順に取り出す。", comp: "O(n log n) / O(n log n)" },
+        tim: { logic: "挿入とマージのハイブリッド。実用最強候補。", comp: "O(n) / O(n log n)" },
+        shell: { logic: "間隔をあけた挿入ソートの改良版。", comp: "O(n log n) / O(n²)" },
+        insertion: { logic: "整列済み範囲に適切な位置へ挿入する。", comp: "O(n) / O(n²)" },
+        selection: { logic: "最小値を探して先頭と入れ替える。", comp: "O(n²) / O(n²)" },
+        bubble: { logic: "隣同士を比較して入れ替える基本形。", comp: "O(n) / O(n²)" },
+        cocktail: { logic: "バブルソートを左右往復させた改良型。", comp: "O(n) / O(n²)" },
+        gnome: { logic: "一歩進んで、逆転があれば戻って直す庭師の動き。", comp: "O(n) / O(n²)" },
+        abe: { logic: "最大値を下回る要素を最大値へ強制書き換え。", comp: "O(n) / O(n)" },
+        stalin: { logic: "順序を乱す要素をその場で0（消去）にする。", comp: "O(n) / O(n)" },
+        sleep: { logic: "数値に応じた時間待機して確定させる。", comp: "O(n + max)" },
+        bogo: { logic: "揃うまで完全にランダムに並び替える。", comp: "O(n) / ∞" },
+        miracle: { logic: "何もせず、奇跡的に揃うのを待つ。", comp: "O(n) / ∞" }
     };
 
-    function render(hl = [], type = 'comparing') {
-        graph.innerHTML = '';
-        array.forEach((v, i) => {
-            const b = document.createElement('div');
-            b.className = 'bar';
-            b.style.height = `${v}%`;
-            if (hl.includes(i)) b.classList.add(type);
-            graph.appendChild(b);
-        });
+    window.onload = () => {
+        canvas = document.getElementById('sortCanvas');
+        ctx = canvas.getContext('2d');
+        resizeCanvas();
+        updateInfo();
+        resetAll();
+    };
+
+    function resizeCanvas() {
+        canvas.width = canvas.clientWidth;
+        canvas.height = canvas.clientHeight;
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const barWidth = canvas.width / array.length;
+        for (let i = 0; i < array.length; i++) {
+            let color = "#38bdf8";
+            if (highlightIdx.includes(i)) color = "#ef4444";
+            if (isSorting === 'finished') color = "#2ecc71";
+            ctx.fillStyle = color;
+            const barHeight = (array[i] / 100) * canvas.height;
+            ctx.fillRect(i * barWidth, canvas.height - barHeight, Math.max(1, barWidth), barHeight);
+        }
+    }
+
+    function startTimer() {
+        const startTime = performance.now();
+        timerInterval = setInterval(() => {
+            const diff = performance.now() - startTime;
+            document.getElementById('timeValue').innerText = `${(diff / 1000).toFixed(3)} 秒 (${diff.toFixed(2)} ms)`;
+        }, 16);
     }
 
     function resetAll() {
-        isSorting = false; // ループ停止
+        isSorting = false;
+        clearInterval(timerInterval);
         const count = parseInt(document.getElementById('dataCount').value);
-        array = Array.from({length: count}, () => Math.floor(Math.random() * 90) + 10);
-        render();
+        array = Array.from({length: count}, () => Math.random() * 90 + 5);
+        highlightIdx = [];
+        draw();
         document.getElementById('timeValue').innerText = "0.000 秒 (0.00 ms)";
         document.getElementById('startBtn').disabled = false;
     }
 
-    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-
-    async function checkStop() {
-        if (!isSorting) throw new Error("STOP");
-        await sleep(10); // 共通の待機時間
-    }
-
-    async function finishEffect() {
-        const bars = document.getElementsByClassName('bar');
-        for (let i = 0; i < bars.length; i++) {
-            if (!isSorting) return;
-            bars[i].classList.add('finished');
-            await sleep(15);
-        }
+    const nextFrame = () => new Promise(r => requestAnimationFrame(r));
+    async function checkStop(mod = 50) {
+        if (!isSorting) throw "STOP";
+        if (Math.random() < (1/mod)) { draw(); await nextFrame(); }
     }
 
     async function startSort() {
-        const btn = document.getElementById('startBtn');
-        btn.disabled = true;
         isSorting = true;
+        document.getElementById('startBtn').disabled = true;
         const a = document.getElementById('algoSelect').value;
-        const start = performance.now();
-        
+        startTimer();
+
         try {
             if (a === 'quick') await quickSort(0, array.length - 1);
+            else if (a === 'merge') await mergeSort(0, array.length - 1);
             else if (a === 'heap') await heapSort();
+            else if (a === 'tim') await timSort();
             else if (a === 'shell') await shellSort();
             else if (a === 'insertion') await insertionSort();
             else if (a === 'selection') await selectionSort();
             else if (a === 'bubble') await bubbleSort();
             else if (a === 'cocktail') await cocktailSort();
+            else if (a === 'gnome') await gnomeSort();
             else if (a === 'abe') await abeSort();
             else if (a === 'stalin') await stalinSort();
+            else if (a === 'sleep') await sleepSort();
             else if (a === 'bogo') await bogoSort();
             else if (a === 'miracle') await miracleSort();
 
-            const end = performance.now();
-            const diff = end - start;
-            document.getElementById('timeValue').innerText = `${(diff / 1000).toFixed(3)} 秒 (${diff.toFixed(2)} ms)`;
-            
-            render();
+            clearInterval(timerInterval);
+            isSorting = 'finished';
             await finishEffect();
         } catch (e) {
-            if (e.message !== "STOP") console.error(e);
+            clearInterval(timerInterval);
         } finally {
-            btn.disabled = false;
-            isSorting = false;
+            document.getElementById('startBtn').disabled = false;
         }
     }
 
-    // --- アルゴリズム実装（停止チェック入り） ---
+    async function finishEffect() {
+        const step = Math.ceil(array.length / 50);
+        for (let i = 0; i < array.length; i += step) {
+            if (!isSorting) return;
+            draw();
+            await nextFrame();
+        }
+        draw();
+    }
+
+    // --- アルゴリズム実装 ---
     async function quickSort(s, e) {
         if (s >= e) return;
         let p = array[e], i = s;
         for (let j = s; j < e; j++) {
-            await checkStop();
-            if (array[j] < p) { [array[i], array[j]] = [array[j], array[i]]; i++; render([i, j]); }
+            await checkStop(100);
+            if (array[j] < p) { [array[i], array[j]] = [array[j], array[i]]; i++; }
         }
         [array[i], array[e]] = [array[e], array[i]];
+        highlightIdx = [i];
         await quickSort(s, i - 1); await quickSort(i + 1, e);
     }
 
+    async function mergeSort(s, e) {
+        if (s >= e) return;
+        let m = Math.floor((s + e) / 2);
+        await mergeSort(s, m); await mergeSort(m + 1, e);
+        let L = array.slice(s, m + 1), R = array.slice(m + 1, e + 1);
+        let i = 0, j = 0, k = s;
+        while (i < L.length && j < R.length) {
+            await checkStop(100);
+            array[k++] = (L[i] <= R[j]) ? L[i++] : R[j++];
+            highlightIdx = [k];
+        }
+        while (i < L.length) { array[k++] = L[i++]; await checkStop(500); }
+        while (j < R.length) { array[k++] = R[j++]; await checkStop(500); }
+    }
+
     async function heapSort() {
-        let n = array.length;
-        const heapify = async (size, idx) => {
-            let largest = idx, l = 2*idx+1, r = 2*idx+2;
-            if (l < size && array[l] > array[largest]) largest = l;
-            if (r < size && array[r] > array[largest]) largest = r;
-            if (largest !== idx) { 
-                await checkStop();
-                [array[idx], array[largest]] = [array[largest], array[idx]]; 
-                render([idx, largest]); await heapify(size, largest); 
+        const heapify = async (n, i) => {
+            let largest = i, l = 2*i+1, r = 2*i+2;
+            if (l < n && array[l] > array[largest]) largest = l;
+            if (r < n && array[r] > array[largest]) largest = r;
+            if (largest !== i) {
+                [array[i], array[largest]] = [array[largest], array[i]];
+                await checkStop(100);
+                await heapify(n, largest);
             }
         };
-        for (let i = Math.floor(n/2)-1; i >= 0; i--) await heapify(n, i);
-        for (let i = n-1; i > 0; i--) { 
-            await checkStop();
-            [array[0], array[i]] = [array[i], array[0]]; render([i]); await heapify(i, 0); 
+        for (let i = Math.floor(array.length/2)-1; i >= 0; i--) await heapify(array.length, i);
+        for (let i = array.length-1; i > 0; i--) {
+            [array[0], array[i]] = [array[i], array[0]];
+            highlightIdx = [i]; await heapify(i, 0);
+        }
+    }
+
+    async function timSort() {
+        let n = array.length, RUN = 32;
+        for (let i = 0; i < n; i += RUN) {
+            for (let j = i+1; j < Math.min(i+RUN, n); j++) {
+                let temp = array[j], k = j-1;
+                while (k >= i && array[k] > temp) { array[k+1] = array[k]; k--; await checkStop(500); }
+                array[k+1] = temp;
+            }
+        }
+        for (let size = RUN; size < n; size = 2*size) {
+            for (let left = 0; left < n; left += 2*size) {
+                let mid = left + size - 1, right = Math.min((left + 2*size - 1), (n-1));
+                if (mid < right) {
+                    let L = array.slice(left, mid+1), R = array.slice(mid+1, right+1);
+                    let i = 0, j = 0, k = left;
+                    while (i < L.length && j < R.length) {
+                        await checkStop(200);
+                        array[k++] = (L[i] <= R[j]) ? L[i++] : R[j++];
+                    }
+                    while (i < L.length) array[k++] = L[i++];
+                    while (j < R.length) array[k++] = R[j++];
+                }
+            }
+        }
+    }
+
+    async function bubbleSort() {
+        for (let i = 0; i < array.length; i++) {
+            for (let j = 0; j < array.length - i - 1; j++) {
+                await checkStop(1000);
+                if (array[j] > array[j+1]) [array[j], array[j+1]] = [array[j+1], array[j]];
+            }
+            highlightIdx = [array.length-i];
+        }
+    }
+
+    async function insertionSort() {
+        for (let i = 1; i < array.length; i++) {
+            let key = array[i], j = i - 1;
+            while (j >= 0 && array[j] > key) {
+                await checkStop(1000);
+                array[j+1] = array[j]; j--;
+            }
+            array[j+1] = key;
+            highlightIdx = [i];
+        }
+    }
+
+    async function cocktailSort() {
+        let l = 0, r = array.length - 1;
+        while (l < r) {
+            for (let i = l; i < r; i++) { await checkStop(1000); if (array[i] > array[i+1]) [array[i], array[i+1]] = [array[i+1], array[i]]; }
+            r--;
+            for (let i = r; i > l; i--) { await checkStop(1000); if (array[i] < array[i-1]) [array[i], array[i-1]] = [array[i-1], array[i]]; }
+            l++;
+        }
+    }
+
+    async function gnomeSort() {
+        let i = 0;
+        while (i < array.length) {
+            await checkStop(1000);
+            if (i === 0 || array[i] >= array[i-1]) i++;
+            else { [array[i], array[i-1]] = [array[i-1], array[i]]; i--; highlightIdx = [i]; }
         }
     }
 
@@ -194,9 +310,9 @@
         for (let gap = Math.floor(array.length/2); gap > 0; gap = Math.floor(gap/2)) {
             for (let i = gap; i < array.length; i++) {
                 let temp = array[i], j = i;
-                while (j >= gap && array[j-gap] > temp) { 
-                    await checkStop();
-                    array[j] = array[j-gap]; j -= gap; render([j], 'writing'); 
+                while (j >= gap && array[j-gap] > temp) {
+                    await checkStop(500);
+                    array[j] = array[j-gap]; j -= gap;
                 }
                 array[j] = temp;
             }
@@ -206,83 +322,54 @@
     async function stalinSort() {
         let max = array[0];
         for (let i = 1; i < array.length; i++) {
-            await checkStop();
-            if (array[i] < max) {
-                array[i] = 0; // 粛清：その場を0にする（左詰めしない）
-            } else {
-                max = array[i];
-            }
-            render([i], 'comparing');
+            await checkStop(100);
+            if (array[i] < max) array[i] = 0; else max = array[i];
+            highlightIdx = [i];
         }
     }
 
     async function abeSort() {
         let max = array[0];
         for (let i = 1; i < array.length; i++) {
-            await checkStop();
+            await checkStop(100);
             if (array[i] < max) array[i] = max; else max = array[i];
-            render([i], 'writing');
+            highlightIdx = [i];
         }
     }
 
-    async function insertionSort() {
-        for (let i = 1; i < array.length; i++) {
-            let key = array[i], j = i - 1;
-            while (j >= 0 && array[j] > key) { 
-                await checkStop();
-                array[j+1] = array[j]; j--; render([j, i], 'writing'); 
+    async function sleepSort() {
+        let copy = [...array], res = [];
+        array.fill(0);
+        const maxVal = Math.max(...copy);
+        copy.forEach(v => setTimeout(() => { if(isSorting==='finished'||!isSorting) return; res.push(v); array[res.length-1] = v; highlightIdx=[res.length-1]; draw(); }, v * 20));
+        while (res.length < copy.length) { await checkStop(10); if(!isSorting) return; }
+    }
+
+    async function bogoSort() {
+        while (!array.every((v, i) => i === 0 || v >= array[i-1])) {
+            await checkStop(10);
+            for (let i = array.length-1; i > 0; i--) {
+                const j = Math.floor(Math.random()*(i+1));
+                [array[i], array[j]] = [array[j], array[i]];
             }
-            array[j+1] = key;
+        }
+    }
+
+    async function miracleSort() {
+        while (!array.every((v, i) => i === 0 || v >= array[i-1])) {
+            await checkStop(10);
         }
     }
 
     async function selectionSort() {
         for (let i = 0; i < array.length; i++) {
             let m = i;
-            for (let j = i + 1; j < array.length; j++) { 
-                await checkStop();
-                if (array[j] < array[m]) m = j; render([i, j]); 
+            for (let j = i + 1; j < array.length; j++) {
+                await checkStop(2000);
+                if (array[j] < array[m]) m = j;
             }
             [array[i], array[m]] = [array[m], array[i]];
-        }
-    }
-
-    async function bubbleSort() {
-        for (let i = 0; i < array.length; i++) {
-            for (let j = 0; j < array.length - i - 1; j++) {
-                await checkStop();
-                if (array[j] > array[j+1]) [array[j], array[j+1]] = [array[j+1], array[j]];
-                render([j, j+1]);
-            }
-        }
-    }
-
-    async function cocktailSort() {
-        let l = 0, r = array.length - 1;
-        while (l < r) {
-            for (let i = l; i < r; i++) { await checkStop(); if (array[i] > array[i+1]) [array[i], array[i+1]] = [array[i+1], array[i]]; render([i, i+1]); }
-            r--;
-            for (let i = r; i > l; i--) { await checkStop(); if (array[i] < array[i-1]) [array[i], array[i-1]] = [array[i-1], array[i]]; render([i, i-1]); }
-            l++;
-        }
-    }
-
-    async function bogoSort() {
-        const isS = () => array.every((v, i) => i === 0 || v >= array[i-1]);
-        while (!isS()) {
-            await checkStop();
-            for (let i = array.length-1; i > 0; i--) {
-                const j = Math.floor(Math.random()*(i+1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            render();
-        }
-    }
-
-    async function miracleSort() {
-        while (!array.every((v, i) => i === 0 || v >= array[i-1])) {
-            await checkStop();
-            render();
+            highlightIdx = [i];
         }
     }
 
@@ -291,9 +378,6 @@
         document.getElementById('logicText').innerText = info[a].logic;
         document.getElementById('complexityText').innerText = info[a].comp;
     }
-
-    updateInfo();
-    resetAll();
 </script>
 </body>
 </html>
