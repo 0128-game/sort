@@ -2,16 +2,17 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>The Complete Sorting Encyclopedia</title>
+    <title>The Ultimate Sorting Encyclopedia - Final</title>
     <style>
-        :root { --primary: #2563eb; --bg: #f1f5f9; --card: #ffffff; --text: #0f172a; }
+        :root { --primary: #2563eb; --bg: #f1f5f9; --card: #ffffff; --text: #0f172a; --success: #2ecc71; }
         body { font-family: 'Helvetica Neue', Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .container { width: 95vw; max-width: 1100px; }
         .controls { background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
-        .graph-container { background: #1e293b; height: 300px; border-radius: 8px; display: flex; align-items: flex-end; padding: 10px; gap: 1px; margin-bottom: 20px; }
+        .graph-container { background: #1e293b; height: 300px; border-radius: 8px; display: flex; align-items: flex-end; padding: 10px; gap: 1px; margin-bottom: 20px; position: relative; }
         .bar { background: #38bdf8; flex: 1; transition: height 0.1s; }
-        .bar.comparing { background: #ef4444; }
-        .bar.writing { background: #fbbf24; }
+        .bar.comparing { background: #ef4444 !important; }
+        .bar.writing { background: #fbbf24 !important; }
+        .bar.finished { background: var(--success) !important; transition: background 0.05s; }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; }
         .stat-card { background: var(--card); padding: 15px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); border-top: 4px solid var(--primary); }
         .label { font-size: 0.75rem; color: #64748b; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; }
@@ -19,7 +20,7 @@
         select, input, button { padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.9rem; }
         button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
         button:hover { background: #1d4ed8; }
-        h2 { margin: 0 0 15px 0; text-align: center; }
+        button:disabled { background: #cbd5e1; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -49,11 +50,11 @@
                     <option value="gnome">ノームソート</option>
                 </optgroup>
                 <optgroup label="🤡 ネタセクション">
-                    <option value="abe">アベソート</option>
-                    <option value="stalin">スターリンソート</option>
-                    <option value="sleep">スリープソート</option>
-                    <option value="bogo">ボゴソート</option>
-                    <option value="miracle">ミラクルソート</option>
+                    <option value="abe">アベソート (上方修正)</option>
+                    <option value="stalin">スターリンソート (粛清)</option>
+                    <option value="sleep">スリープソート (時間依存)</option>
+                    <option value="bogo">ボゴソート (神頼み)</option>
+                    <option value="miracle">ミラクルソート (奇跡待ち)</option>
                     <option value="id">インテリジェントデザイン</option>
                 </optgroup>
             </select>
@@ -64,7 +65,7 @@
         </div>
         <div style="display: flex; align-items: flex-end; gap: 10px;">
             <button onclick="initArray()" style="background: #64748b;">リセット</button>
-            <button onclick="startSort()">ソート開始</button>
+            <button onclick="startSort()" id="startBtn">ソート開始</button>
         </div>
     </div>
 
@@ -73,7 +74,7 @@
     <div class="stats-grid">
         <div class="stat-card"><div class="label">仕組み</div><div class="value" id="logicText">-</div></div>
         <div class="stat-card"><div class="label">計算時間 (最良 / 最悪)</div><div class="value" id="complexityText">-</div></div>
-        <div class="stat-card"><div class="label">計測結果</div><div class="value" id="timeValue">0 ms</div></div>
+        <div class="stat-card"><div class="label">実行計測時間</div><div class="value" id="timeValue">0.000 秒 (0.00 ms)</div></div>
     </div>
 </div>
 
@@ -104,7 +105,7 @@
         const count = parseInt(document.getElementById('dataCount').value);
         array = Array.from({length: count}, () => Math.floor(Math.random() * 90) + 10);
         render();
-        document.getElementById('timeValue').innerText = "0 ms";
+        document.getElementById('timeValue').innerText = "0.000 秒 (0.00 ms)";
     }
 
     function render(hl = [], type = 'comparing') {
@@ -118,6 +119,14 @@
         });
     }
 
+    async function finishEffect() {
+        const bars = document.getElementsByClassName('bar');
+        for (let i = 0; i < bars.length; i++) {
+            bars[i].classList.add('finished');
+            await sleep(15);
+        }
+    }
+
     function updateInfo() {
         const a = document.getElementById('algoSelect').value;
         document.getElementById('logicText').innerText = info[a].logic;
@@ -127,6 +136,8 @@
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
     async function startSort() {
+        const btn = document.getElementById('startBtn');
+        btn.disabled = true;
         const a = document.getElementById('algoSelect').value;
         const start = performance.now();
         
@@ -146,13 +157,18 @@
         else if (a === 'sleep') await sleepSort();
         else if (a === 'bogo') await bogoSort();
         else if (a === 'miracle') await miracleSort();
-        else if (a === 'id') alert("創造主の意図により整列済みと認められました。");
+        else if (a === 'id') { /* ID sort does nothing */ }
 
-        document.getElementById('timeValue').innerText = `${(performance.now() - start).toFixed(2)} ms`;
+        const end = performance.now();
+        const diff = end - start;
+        document.getElementById('timeValue').innerText = `${(diff / 1000).toFixed(3)} 秒 (${diff.toFixed(2)} ms)`;
+        
         render();
+        await finishEffect();
+        btn.disabled = false;
     }
 
-    // --- 各アルゴリズムの実装 (代表的なもの) ---
+    // --- 各アルゴリズムの実装 ---
     async function quickSort(s, e) {
         if (s >= e) return;
         let p = array[e], i = s;
@@ -261,12 +277,10 @@
 
     async function miracleSort() {
         while (!array.every((v, i) => i === 0 || v >= array[i-1])) {
-            // 宇宙線待ち
             render(); await sleep(100);
         }
     }
 
-    // 他のソート(挿入、選択、カクテル、ノーム、スリープ、ティム等)も内部的に連動
     async function insertionSort() {
         for (let i = 1; i < array.length; i++) {
             let key = array[i], j = i - 1;
@@ -304,7 +318,6 @@
         await sleep(Math.max(...copy) * 15 + 100);
     }
     async function timSort() {
-        // 簡易版ティムソート可視化
         let n = array.length, RUN = 16;
         for (let i = 0; i < n; i += RUN) {
             let end = Math.min(i + RUN - 1, n - 1);
