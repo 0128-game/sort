@@ -2,13 +2,13 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>The Complete Sorting Encyclopedia - 5000 Units</title>
+    <title>Sorting Encyclopedia - Slow Motion Edition</title>
     <style>
         :root { --primary: #2563eb; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --success: #2ecc71; }
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .container { width: 95vw; max-width: 1200px; }
         .controls { background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
-        .canvas-container { background: #000; border-radius: 8px; overflow: hidden; margin-bottom: 20px; border: 1px solid #334155; position: relative; }
+        .canvas-container { background: #000; border-radius: 8px; overflow: hidden; margin-bottom: 20px; border: 1px solid #334155; }
         canvas { width: 100%; height: 400px; display: block; }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; }
         .stat-card { background: var(--card); padding: 15px; border-radius: 10px; border-top: 4px solid var(--primary); }
@@ -24,38 +24,38 @@
 <body>
 
 <div class="container">
-    <h2>ソートアルゴリズム究極図鑑 (全種網羅・5,000件対応)</h2>
+    <h2>ソートアルゴリズム究極図鑑 (低速・全種網羅)</h2>
 
     <div class="controls">
         <div>
             <div class="label">アルゴリズム</div>
             <select id="algoSelect" onchange="updateInfo()" style="width: 100%;">
-                <optgroup label="🚀 大規模向き (高速)">
+                <optgroup label="🚀 高速・実用">
                     <option value="quick">クイックソート</option>
                     <option value="merge">マージソート</option>
                     <option value="heap">ヒープソート</option>
                     <option value="tim">ティムソート</option>
                     <option value="shell">シェルソート</option>
                 </optgroup>
-                <optgroup label="🔍 中・小規模向き">
+                <optgroup label="🔍 基本・学習用">
                     <option value="insertion">挿入ソート</option>
                     <option value="selection">選択ソート</option>
                     <option value="bubble">バブルソート</option>
                     <option value="cocktail">カクテルソート</option>
                     <option value="gnome">ノームソート</option>
                 </optgroup>
-                <optgroup label="🤡 ネタセクション">
+                <optgroup label="🤡 ネタ・特殊">
                     <option value="abe">アベソート (上方修正)</option>
                     <option value="stalin">スターリンソート (固定粛清)</option>
                     <option value="sleep">スリープソート (時間依存)</option>
                     <option value="bogo">ボゴソート (神頼み)</option>
-                    <option value="miracle">ミラクルソート (奇跡)</option>
+                    <option value="miracle">ミラクルソート (奇跡待ち)</option>
                 </optgroup>
             </select>
         </div>
         <div>
-            <div class="label">データ数 (現在: <span id="countVal">1000</span>)</div>
-            <input type="range" id="dataCount" value="1000" min="10" max="5000" step="10" oninput="document.getElementById('countVal').innerText=this.value" style="width: 90%;">
+            <div class="label">データ数 (現在: <span id="countVal">300</span>)</div>
+            <input type="range" id="dataCount" value="300" min="10" max="5000" step="10" oninput="document.getElementById('countVal').innerText=this.value" style="width: 90%;">
         </div>
         <div style="display: flex; align-items: flex-end; gap: 10px;">
             <button onclick="resetAll()" style="background: #64748b;">リセット</button>
@@ -82,21 +82,21 @@
     let highlightIdx = [];
 
     const info = {
-        quick: { logic: "ピボットを基準に再帰的に分割。平均最速クラス。", comp: "O(n log n) / O(n²)" },
-        merge: { logic: "分割してから整列しつつ合体。安定性が高い。", comp: "O(n log n) / O(n log n)" },
-        heap: { logic: "木構造を作り、最大値から順に取り出す。", comp: "O(n log n) / O(n log n)" },
-        tim: { logic: "挿入とマージのハイブリッド。実用最強候補。", comp: "O(n) / O(n log n)" },
-        shell: { logic: "間隔をあけた挿入ソートの改良版。", comp: "O(n log n) / O(n²)" },
-        insertion: { logic: "整列済み範囲に適切な位置へ挿入する。", comp: "O(n) / O(n²)" },
-        selection: { logic: "最小値を探して先頭と入れ替える。", comp: "O(n²) / O(n²)" },
-        bubble: { logic: "隣同士を比較して入れ替える基本形。", comp: "O(n) / O(n²)" },
-        cocktail: { logic: "バブルソートを左右往復させた改良型。", comp: "O(n) / O(n²)" },
-        gnome: { logic: "一歩進んで、逆転があれば戻って直す庭師の動き。", comp: "O(n) / O(n²)" },
-        abe: { logic: "最大値を下回る要素を最大値へ強制書き換え。", comp: "O(n) / O(n)" },
-        stalin: { logic: "順序を乱す要素をその場で0（消去）にする。", comp: "O(n) / O(n)" },
-        sleep: { logic: "数値に応じた時間待機して確定させる。", comp: "O(n + max)" },
-        bogo: { logic: "揃うまで完全にランダムに並び替える。", comp: "O(n) / ∞" },
-        miracle: { logic: "何もせず、奇跡的に揃うのを待つ。", comp: "O(n) / ∞" }
+        quick: { logic: "基準(ピボット)より大きいか小さいかで分ける。動きがダイナミック。", comp: "O(n log n) / O(n²)" },
+        merge: { logic: "半分に割り続け、整列しながら戻す。外部メモリを使う様子を再現。", comp: "O(n log n) / O(n log n)" },
+        heap: { logic: "配列を木構造にし、最大値を後ろへ飛ばしていく。", comp: "O(n log n) / O(n log n)" },
+        tim: { logic: "挿入とマージのいいとこ取り。実用的な分割動作が見所。", comp: "O(n) / O(n log n)" },
+        shell: { logic: "飛び飛びの範囲でソートし、徐々に間隔を詰める。", comp: "O(n log n) / O(n²)" },
+        insertion: { logic: "一枚ずつ正しい位置へ差し込んでいく。トランプの整理に近い。", comp: "O(n) / O(n²)" },
+        selection: { logic: "未整列から最小値を探し、先頭と交換する。", comp: "O(n²) / O(n²)" },
+        bubble: { logic: "隣同士を入れ替え、重いものが下に沈んでいく。", comp: "O(n) / O(n²)" },
+        cocktail: { logic: "左右に往復しながら泡立てるように整列する。", comp: "O(n) / O(n²)" },
+        gnome: { logic: "入れ替えたら一歩戻る。庭師(ノーム)の粘り強い動き。", comp: "O(n) / O(n²)" },
+        abe: { logic: "最大値より低いものは全て最大値に上書きする。", comp: "O(n) / O(n)" },
+        stalin: { logic: "順序を乱す者は即座に0として排除する。", comp: "O(n) / O(n)" },
+        sleep: { logic: "数値に比例した時間を待ってから確定させる。", comp: "O(n + max)" },
+        bogo: { logic: "完全に運。揃うまでシャッフルを繰り返す。", comp: "O(n) / ∞" },
+        miracle: { logic: "何もしない。宇宙の奇跡で揃うまでタイマーが回る。", comp: "O(n) / ∞" }
     };
 
     window.onload = () => {
@@ -121,8 +121,20 @@
             if (isSorting === 'finished') color = "#2ecc71";
             ctx.fillStyle = color;
             const barHeight = (array[i] / 100) * canvas.height;
-            ctx.fillRect(i * barWidth, canvas.height - barHeight, Math.max(1, barWidth), barHeight);
+            ctx.fillRect(i * barWidth, canvas.height - barHeight, Math.max(0.5, barWidth), barHeight);
         }
+    }
+
+    const nextFrame = () => new Promise(r => requestAnimationFrame(r));
+    
+    // 速度調整用の共通関数（ここを遅くしました）
+    async function step(highlight = [], mod = 1) {
+        if (!isSorting) throw "STOP";
+        highlightIdx = highlight;
+        draw();
+        // 5000件の時は少し速く、少ない時はより遅くなるよう調整
+        const baseDelay = array.length > 500 ? 1 : 20; 
+        await new Promise(r => setTimeout(r, baseDelay * mod));
     }
 
     function startTimer() {
@@ -142,12 +154,6 @@
         draw();
         document.getElementById('timeValue').innerText = "0.000 秒 (0.00 ms)";
         document.getElementById('startBtn').disabled = false;
-    }
-
-    const nextFrame = () => new Promise(r => requestAnimationFrame(r));
-    async function checkStop(mod = 50) {
-        if (!isSorting) throw "STOP";
-        if (Math.random() < (1/mod)) { draw(); await nextFrame(); }
     }
 
     async function startSort() {
@@ -184,8 +190,8 @@
     }
 
     async function finishEffect() {
-        const step = Math.ceil(array.length / 50);
-        for (let i = 0; i < array.length; i += step) {
+        const stepSize = Math.ceil(array.length / 60);
+        for (let i = 0; i < array.length; i += stepSize) {
             if (!isSorting) return;
             draw();
             await nextFrame();
@@ -193,16 +199,18 @@
         draw();
     }
 
-    // --- アルゴリズム実装 ---
+    // --- 各アルゴリズムの実装 (ウェイトを強化) ---
     async function quickSort(s, e) {
         if (s >= e) return;
         let p = array[e], i = s;
         for (let j = s; j < e; j++) {
-            await checkStop(100);
-            if (array[j] < p) { [array[i], array[j]] = [array[j], array[i]]; i++; }
+            if (array[j] < p) { 
+                [array[i], array[j]] = [array[j], array[i]]; i++; 
+                await step([i, j], 0.5); 
+            }
         }
         [array[i], array[e]] = [array[e], array[i]];
-        highlightIdx = [i];
+        await step([i]);
         await quickSort(s, i - 1); await quickSort(i + 1, e);
     }
 
@@ -213,12 +221,11 @@
         let L = array.slice(s, m + 1), R = array.slice(m + 1, e + 1);
         let i = 0, j = 0, k = s;
         while (i < L.length && j < R.length) {
-            await checkStop(100);
             array[k++] = (L[i] <= R[j]) ? L[i++] : R[j++];
-            highlightIdx = [k];
+            await step([k]);
         }
-        while (i < L.length) { array[k++] = L[i++]; await checkStop(500); }
-        while (j < R.length) { array[k++] = R[j++]; await checkStop(500); }
+        while (i < L.length) { array[k++] = L[i++]; await step([k]); }
+        while (j < R.length) { array[k++] = R[j++]; await step([k]); }
     }
 
     async function heapSort() {
@@ -228,14 +235,14 @@
             if (r < n && array[r] > array[largest]) largest = r;
             if (largest !== i) {
                 [array[i], array[largest]] = [array[largest], array[i]];
-                await checkStop(100);
+                await step([i, largest]);
                 await heapify(n, largest);
             }
         };
         for (let i = Math.floor(array.length/2)-1; i >= 0; i--) await heapify(array.length, i);
         for (let i = array.length-1; i > 0; i--) {
             [array[0], array[i]] = [array[i], array[0]];
-            highlightIdx = [i]; await heapify(i, 0);
+            await step([i]); await heapify(i, 0);
         }
     }
 
@@ -244,7 +251,7 @@
         for (let i = 0; i < n; i += RUN) {
             for (let j = i+1; j < Math.min(i+RUN, n); j++) {
                 let temp = array[j], k = j-1;
-                while (k >= i && array[k] > temp) { array[k+1] = array[k]; k--; await checkStop(500); }
+                while (k >= i && array[k] > temp) { array[k+1] = array[k]; k--; await step([k, j], 0.1); }
                 array[k+1] = temp;
             }
         }
@@ -254,12 +261,9 @@
                 if (mid < right) {
                     let L = array.slice(left, mid+1), R = array.slice(mid+1, right+1);
                     let i = 0, j = 0, k = left;
-                    while (i < L.length && j < R.length) {
-                        await checkStop(200);
-                        array[k++] = (L[i] <= R[j]) ? L[i++] : R[j++];
-                    }
-                    while (i < L.length) array[k++] = L[i++];
-                    while (j < R.length) array[k++] = R[j++];
+                    while (i < L.length && j < R.length) { array[k++] = (L[i] <= R[j]) ? L[i++] : R[j++]; await step([k]); }
+                    while (i < L.length) { array[k++] = L[i++]; await step([k]); }
+                    while (j < R.length) { array[k++] = R[j++]; await step([k]); }
                 }
             }
         }
@@ -268,10 +272,9 @@
     async function bubbleSort() {
         for (let i = 0; i < array.length; i++) {
             for (let j = 0; j < array.length - i - 1; j++) {
-                await checkStop(1000);
                 if (array[j] > array[j+1]) [array[j], array[j+1]] = [array[j+1], array[j]];
+                if (j % Math.ceil(array.length/100) === 0) await step([j, j+1], 0.1);
             }
-            highlightIdx = [array.length-i];
         }
     }
 
@@ -279,20 +282,31 @@
         for (let i = 1; i < array.length; i++) {
             let key = array[i], j = i - 1;
             while (j >= 0 && array[j] > key) {
-                await checkStop(1000);
                 array[j+1] = array[j]; j--;
+                if (j % Math.ceil(array.length/100) === 0) await step([j, i], 0.1);
             }
             array[j+1] = key;
-            highlightIdx = [i];
+        }
+    }
+
+    async function selectionSort() {
+        for (let i = 0; i < array.length; i++) {
+            let m = i;
+            for (let j = i + 1; j < array.length; j++) {
+                if (array[j] < array[m]) m = j;
+                if (j % Math.ceil(array.length/50) === 0) await step([i, j], 0.1);
+            }
+            [array[i], array[m]] = [array[m], array[i]];
+            await step([i, m]);
         }
     }
 
     async function cocktailSort() {
         let l = 0, r = array.length - 1;
         while (l < r) {
-            for (let i = l; i < r; i++) { await checkStop(1000); if (array[i] > array[i+1]) [array[i], array[i+1]] = [array[i+1], array[i]]; }
+            for (let i = l; i < r; i++) { if (array[i] > array[i+1]) [array[i], array[i+1]] = [array[i+1], array[i]]; if (i%10===0) await step([i]); }
             r--;
-            for (let i = r; i > l; i--) { await checkStop(1000); if (array[i] < array[i-1]) [array[i], array[i-1]] = [array[i-1], array[i]]; }
+            for (let i = r; i > l; i--) { if (array[i] < array[i-1]) [array[i], array[i-1]] = [array[i-1], array[i]]; if (i%10===0) await step([i]); }
             l++;
         }
     }
@@ -300,9 +314,8 @@
     async function gnomeSort() {
         let i = 0;
         while (i < array.length) {
-            await checkStop(1000);
             if (i === 0 || array[i] >= array[i-1]) i++;
-            else { [array[i], array[i-1]] = [array[i-1], array[i]]; i--; highlightIdx = [i]; }
+            else { [array[i], array[i-1]] = [array[i-1], array[i]]; i--; if (i%10===0) await step([i]); }
         }
     }
 
@@ -310,10 +323,7 @@
         for (let gap = Math.floor(array.length/2); gap > 0; gap = Math.floor(gap/2)) {
             for (let i = gap; i < array.length; i++) {
                 let temp = array[i], j = i;
-                while (j >= gap && array[j-gap] > temp) {
-                    await checkStop(500);
-                    array[j] = array[j-gap]; j -= gap;
-                }
+                while (j >= gap && array[j-gap] > temp) { array[j] = array[j-gap]; j -= gap; await step([j], 0.1); }
                 array[j] = temp;
             }
         }
@@ -322,54 +332,40 @@
     async function stalinSort() {
         let max = array[0];
         for (let i = 1; i < array.length; i++) {
-            await checkStop(100);
             if (array[i] < max) array[i] = 0; else max = array[i];
-            highlightIdx = [i];
+            await step([i], 0.5);
         }
     }
 
     async function abeSort() {
         let max = array[0];
         for (let i = 1; i < array.length; i++) {
-            await checkStop(100);
             if (array[i] < max) array[i] = max; else max = array[i];
-            highlightIdx = [i];
+            await step([i], 0.5);
         }
     }
 
     async function sleepSort() {
         let copy = [...array], res = [];
         array.fill(0);
-        const maxVal = Math.max(...copy);
-        copy.forEach(v => setTimeout(() => { if(isSorting==='finished'||!isSorting) return; res.push(v); array[res.length-1] = v; highlightIdx=[res.length-1]; draw(); }, v * 20));
-        while (res.length < copy.length) { await checkStop(10); if(!isSorting) return; }
+        copy.forEach(v => setTimeout(() => { if(!isSorting) return; res.push(v); array[res.length-1] = v; draw(); }, v * 50));
+        while (res.length < copy.length) { await new Promise(r => setTimeout(r, 100)); if(!isSorting) return; }
     }
 
     async function bogoSort() {
         while (!array.every((v, i) => i === 0 || v >= array[i-1])) {
-            await checkStop(10);
             for (let i = array.length-1; i > 0; i--) {
                 const j = Math.floor(Math.random()*(i+1));
                 [array[i], array[j]] = [array[j], array[i]];
             }
+            await step([], 2);
         }
     }
 
     async function miracleSort() {
         while (!array.every((v, i) => i === 0 || v >= array[i-1])) {
-            await checkStop(10);
-        }
-    }
-
-    async function selectionSort() {
-        for (let i = 0; i < array.length; i++) {
-            let m = i;
-            for (let j = i + 1; j < array.length; j++) {
-                await checkStop(2000);
-                if (array[j] < array[m]) m = j;
-            }
-            [array[i], array[m]] = [array[m], array[i]];
-            highlightIdx = [i];
+            await new Promise(r => setTimeout(r, 500));
+            if (!isSorting) return;
         }
     }
 
